@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="AWS Pricing Calculator - Query and compare AWS service pricing in real-time with cost estimator">
+    <title>AWS Cost Calculator | Multi-Resource Pricing Estimator</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <h1>💰 AWS Cost Calculator</h1>
+                <p class="subtitle">Build cost estimates with multiple resources</p>
+                <div class="connection-status">
+                    <span class="status-dot disconnected" id="statusDot"></span>
+                    <span id="statusText">Checking connection...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container main-layout">
+            <!-- Left Column - Service Selection -->
+            <div class="left-column">
+                <!-- Messages -->
+                <div id="messages"></div>
+
+                <!-- Global Region Selector -->
+                <div class="card">
+                    <h3 class="card-subtitle">🌍 Select Region</h3>
+                    <select id="globalRegion" class="global-region-select">
+                        <optgroup label="🇺🇸 US Regions">
+                            <option value="US East (N. Virginia)" selected>US East (N. Virginia)</option>
+                            <option value="US East (Ohio)">US East (Ohio)</option>
+                            <option value="US West (N. California)">US West (N. California)</option>
+                            <option value="US West (Oregon)">US West (Oregon)</option>
+                        </optgroup>
+                        <optgroup label="🇨🇦 Canada">
+                            <option value="Canada (Central)">Canada (Central)</option>
+                        </optgroup>
+                        <optgroup label="🇪🇺 Europe">
+                            <option value="EU (Ireland)">EU (Ireland)</option>
+                            <option value="EU (London)">EU (London)</option>
+                            <option value="EU (Paris)">EU (Paris)</option>
+                            <option value="EU (Frankfurt)">EU (Frankfurt)</option>
+                            <option value="EU (Stockholm)">EU (Stockholm)</option>
+                            <option value="EU (Milan)">EU (Milan)</option>
+                            <option value="EU (Spain)">EU (Spain)</option>
+                            <option value="EU (Zurich)">EU (Zurich)</option>
+                        </optgroup>
+                        <optgroup label="🌏 Asia Pacific">
+                            <option value="Asia Pacific (Mumbai)">Asia Pacific (Mumbai)</option>
+                            <option value="Asia Pacific (Singapore)">Asia Pacific (Singapore)</option>
+                            <option value="Asia Pacific (Sydney)">Asia Pacific (Sydney)</option>
+                            <option value="Asia Pacific (Tokyo)">Asia Pacific (Tokyo)</option>
+                            <option value="Asia Pacific (Seoul)">Asia Pacific (Seoul)</option>
+                            <option value="Asia Pacific (Osaka)">Asia Pacific (Osaka)</option>
+                            <option value="Asia Pacific (Hong Kong)">Asia Pacific (Hong Kong)</option>
+                            <option value="Asia Pacific (Jakarta)">Asia Pacific (Jakarta)</option>
+                            <option value="Asia Pacific (Melbourne)">Asia Pacific (Melbourne)</option>
+                        </optgroup>
+                        <optgroup label="🌍 Middle East">
+                            <option value="Middle East (Bahrain)">Middle East (Bahrain)</option>
+                            <option value="Middle East (UAE)">Middle East (UAE)</option>
+                        </optgroup>
+                        <optgroup label="🌎 South America">
+                            <option value="South America (São Paulo)">South America (São Paulo)</option>
+                        </optgroup>
+                        <optgroup label="🌍 Africa">
+                            <option value="Africa (Cape Town)">Africa (Cape Town)</option>
+                        </optgroup>
+                        <optgroup label="🏛️ GovCloud">
+                            <option value="AWS GovCloud (US-East)">AWS GovCloud (US-East)</option>
+                            <option value="AWS GovCloud (US-West)">AWS GovCloud (US-West)</option>
+                        </optgroup>
+                        <optgroup label="🇨🇳 China">
+                            <option value="China (Beijing)">China (Beijing)</option>
+                            <option value="China (Ningxia)">China (Ningxia)</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <!-- Service Selection Card -->
+                <div class="card">
+                    <h2 class="card-title">Add AWS Resources</h2>
+
+                    <!-- Service Type Selection -->
+                    <div class="form-group">
+                        <label for="serviceType">AWS Service</label>
+                        <select id="serviceType">
+                            <option value="EC2">Amazon EC2 - Compute Instances</option>
+                            <option value="RDS">Amazon RDS - Databases</option>
+                            <option value="S3">Amazon S3 - Storage</option>
+                            <option value="VPC">Amazon VPC - Networking</option>
+                            <option value="ALB">Application Load Balancer</option>
+                            <option value="Route53">Amazon Route53 - DNS</option>
+                        </select>
+                    </div>
+
+                    <!-- Service-specific forms -->
+                    <div id="serviceFormsContainer"></div>
+
+                    <!-- Add to Cart Button -->
+                    <button class="btn" id="addToCartBtn">
+                        🛒 Add to Cart
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column - Cart -->
+            <div class="right-column">
+                <div class="cart-sticky">
+                    <div class="card cart-card">
+                        <div class="cart-header">
+                            <h2 class="card-title">📋 Cost Estimate</h2>
+                            <button class="btn-secondary btn-small" id="clearCartBtn">Clear All</button>
+                        </div>
+
+                        <div id="cartItems" class="cart-items-list"></div>
+
+                        <div class="cart-summary">
+                            <div class="total-row">
+                                <span class="total-label">Total Monthly Cost:</span>
+                                <span class="total-amount" id="totalCost">$0.00</span>
+                            </div>
+                            <div class="total-annual">
+                                <span>Annual:</span>
+                                <span id="annualCost">$0.00</span>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-download" id="downloadBtn" disabled>
+                            📥 Download Report (CSV)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+</html>
